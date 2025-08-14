@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>توليد كود QR وحفظه</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 30px; direction: rtl; }
+    input, button { padding: 10px; font-size: 16px; margin: 10px; width: 80%; max-width: 400px; }
+    #preview canvas, #preview svg { margin-top: 20px; max-width: 300px; }
+    .download-buttons { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h2>تحويل رابط إلى QR</h2>
+  <input type="text" id="url" placeholder="أدخل الرابط هنا">
+  <button onclick="generateQR()">إنشاء QR</button>
+
+  <div id="preview"></div>
+  <div class="download-buttons">
+    <a id="downloadPNG" style="display:none" download="qrcode.png">🔽 تحميل كصورة PNG</a><br>
+    <a id="downloadSVG" style="display:none" download="qrcode.svg">🔽 تحميل كـ SVG</a>
+  </div>
+
+  <script>
+    function generateQR() {
+      const url = document.getElementById("url").value;
+      const preview = document.getElementById("preview");
+      const downloadPNG = document.getElementById("downloadPNG");
+      const downloadSVG = document.getElementById("downloadSVG");
+
+      if (!url) {
+        alert("يرجى إدخال رابط");
+        return;
+      }
+
+      // Reset
+      preview.innerHTML = '';
+      downloadPNG.style.display = 'none';
+      downloadSVG.style.display = 'none';
+
+      // ===== 1. عرض كـ Canvas =====
+      const canvas = document.createElement('canvas');
+      QRCode.toCanvas(canvas, url, { width: 300 }, function (err) {
+        if (err) return console.error(err);
+        preview.appendChild(canvas);
+
+        // PNG download
+        const pngUrl = canvas.toDataURL("image/png");
+        downloadPNG.href = pngUrl;
+        downloadPNG.style.display = "inline-block";
+      });
+
+      // ===== 2. توليد SVG =====
+      QRCode.toString(url, { type: 'svg' }, function (err, svgString) {
+        if (err) return console.error(err);
+        const svgElement = new DOMParser().parseFromString(svgString, "image/svg+xml").documentElement;
+        preview.appendChild(svgElement);
+
+        const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        downloadSVG.href = svgUrl;
+        downloadSVG.style.display = "inline-block";
+      });
+    }
+  </script>
+
+</body>
+</html>
